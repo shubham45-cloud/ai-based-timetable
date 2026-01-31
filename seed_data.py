@@ -89,7 +89,7 @@ def seed_resources():
         teacher_names = [
             "Dr. Sharma", "Prof. Verma", "Dr. Reddy",
             "Prof. Gill", "Dr. Kapoor", "Prof. Singh",
-            "Dr. Joshi", "Prof. Das"
+            "Dr. Joshi", "Prof. Das","Rohit Sharma"
         ]
 
         teachers = []
