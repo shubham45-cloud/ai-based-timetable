@@ -1,15 +1,40 @@
 import sys
 import os
+
+# Maintain the path logic to allow importing from the app directory
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import SessionLocal
 from app import models
+from passlib.context import CryptContext
 
+# Setup password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
 def seed_resources():
     db = SessionLocal()
     try:
         print("🌱 Seeding FULL college-level timetable data...")
+
+        # -------------------------------------------------
+        # 0️⃣ ADMIN USER
+        # -------------------------------------------------
+        admin_email = "admin@example.com"
+        admin = db.query(models.User).filter_by(email=admin_email).first()
+        
+        if not admin:
+            print("Creating admin user...")
+            admin = models.User(
+                name="Admin",
+                email=admin_email,
+                role="admin",
+                password=hash_password("admin123")
+            )
+            db.add(admin)
+            db.flush()  # Ensure admin is staged before proceeding
 
         # -------------------------------------------------
         # 1️⃣ Departments = Branches
@@ -68,7 +93,6 @@ def seed_resources():
         }
 
         subject_objs = []
-
         for branch, subjects in branch_subjects.items():
             for code, name, lectures in subjects:
                 s = db.query(models.Subject).filter_by(subject_code=code).first()
@@ -89,7 +113,7 @@ def seed_resources():
         teacher_names = [
             "Dr. Sharma", "Prof. Verma", "Dr. Reddy",
             "Prof. Gill", "Dr. Kapoor", "Prof. Singh",
-            "Dr. Joshi", "Prof. Das","Rohit Sharma"
+            "Dr. Joshi", "Prof. Das", "Rohit Sharma"
         ]
 
         teachers = []
@@ -145,7 +169,6 @@ def seed_resources():
 
     finally:
         db.close()
-
 
 if __name__ == "__main__":
     seed_resources()

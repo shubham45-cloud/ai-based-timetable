@@ -1,45 +1,22 @@
-import sys
-import os
-
-# Bulletproof path fix
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from sqlalchemy import text
-from app.database import SessionLocal
-
+from app.database import engine
 
 def reset_database():
-    db = SessionLocal()
-    try:
-        print("🚀 Starting PostgreSQL database reset (branch-only mode)...")
+    with engine.connect() as conn:
+        print("⚠️ DROPPING ALL TABLES (CASCADE)...")
 
-        # Tables aligned with current models.py
-        tables = [
-            "timetable",
-            "teacher_subjects",
-            "subjects",
-            "teachers",
-            "rooms",
-            "departments",
-            "time_slots"
-        ]
+        conn.execute(text("""
+        DO $$ DECLARE
+            r RECORD;
+        BEGIN
+            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+            END LOOP;
+        END $$;
+        """))
 
-        table_string = ", ".join(tables)
-
-        db.execute(
-            text(f"TRUNCATE TABLE {table_string} RESTART IDENTITY CASCADE;")
-        )
-        db.commit()
-
-        print("✅ Database reset successful. All IDs restarted from 1.")
-
-    except Exception as e:
-        db.rollback()
-        print(f"❌ Reset failed: {e}")
-
-    finally:
-        db.close()
-
+        conn.commit()
+        print("✅ ALL tables dropped completely.")
 
 if __name__ == "__main__":
     reset_database()
