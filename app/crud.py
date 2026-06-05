@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
 
-from . import models, schemas
-from .core.security import get_password_hash
+from app import models, schemas
+from app.core.security import get_password_hash
 
 
 # ------------------ USER FUNCTIONS ------------------
@@ -27,62 +27,79 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 # ------------------ DATA FETCHING FOR AI ENGINE ------------------
 
+"""
+crud_addition.py
+────────────────────────────────────────────────────────────────────────
+Paste these functions into your existing  app/crud.py
+(they are the new calls the AI engine makes that didn't exist in v1)
+────────────────────────────────────────────────────────────────────────
+"""
+
+
+
+
+# ── Already in your crud.py (shown here for reference) ───────────────────────
+
 def get_all_teachers(db: Session):
     return db.query(models.Teacher).all()
-
 
 def get_all_subjects(db: Session):
     return db.query(models.Subject).all()
 
-
 def get_all_rooms(db: Session):
     return db.query(models.Room).all()
 
+def get_all_time_slots(db: Session):
+    return db.query(models.TimeSlot).all()
 
 def get_all_teacher_subjects(db: Session):
     return db.query(models.TeacherSubject).all()
 
+def clear_timetable(db: Session):
+    db.query(models.Timetable).delete()
+    db.flush()
 
-def get_all_time_slots(db: Session):
+def save_timetable_entry(db: Session, entry: dict):
+    obj = models.Timetable(**entry)
+    db.add(obj)
+    db.flush()
+
+
+# ── NEW – add this function ───────────────────────────────────────────────────
+
+def get_combined_section_links(db: Session):
+    """
+    Returns all rows from the combined_sections table.
+    Each row has:
+        .combined_dept_id    – virtual combined department (e.g. CSE_4ABC)
+        .constituent_dept_id – real section that is blocked when the
+                               combined subject is scheduled
+    """
+    return db.query(models.CombinedSection).all()
+
+
+# ── Convenience queries ───────────────────────────────────────────────────────
+
+def get_timetable_by_section(db: Session, dept_id: int):
+    """Return all timetable rows for a given section (dept_id)."""
     return (
-        db.query(models.TimeSlot)
-        .order_by(models.TimeSlot.day_of_week, models.TimeSlot.period_no)
+        db.query(models.Timetable)
+        .join(models.Subject, models.Timetable.subject_id == models.Subject.subject_id)
+        .filter(models.Subject.dept_id == dept_id)
+        .order_by(models.Timetable.day_of_week, models.Timetable.period_no)
         .all()
     )
 
-
-# ------------------ TIMETABLE MANAGEMENT ------------------
-
-def clear_timetable(db: Session):
-    """
-    Clears timetable completely.
-    Used before regenerating timetable (demo-friendly).
-    """
-    try:
-        db.execute(text("TRUNCATE TABLE timetable RESTART IDENTITY CASCADE;"))
-        db.commit()
-        print("✅ Timetable cleared successfully.")
-    except Exception as e:
-        db.rollback()
-        print(f"❌ Truncate failed, falling back to delete: {e}")
-        db.query(models.Timetable).delete(synchronize_session=False)
-        db.commit()
-
-
-def save_timetable_entry(db: Session, entry: dict):
-    """
-    Saves a single timetable slot.
-    Commit should be done outside (bulk insert).
-    """
-    db_entry = models.Timetable(**entry)
-    db.add(db_entry)
-
+def get_timetable_by_teacher(db: Session, teacher_id: int):
+    """Return all timetable rows for a given teacher."""
+    return (
+        db.query(models.Timetable)
+        .filter(models.Timetable.teacher_id == teacher_id)
+        .order_by(models.Timetable.day_of_week, models.Timetable.period_no)
+        .all()
+    )
 
 def get_full_timetable(db: Session):
-    """
-    Fetches full timetable with related names.
-    BRANCH-ONLY (no sections).
-    """
     return (
         db.query(models.Timetable)
         .options(
@@ -92,7 +109,7 @@ def get_full_timetable(db: Session):
         )
         .order_by(
             models.Timetable.day_of_week,
-            models.Timetable.period_no,
+            models.Timetable.period_no
         )
         .all()
     )

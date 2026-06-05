@@ -1,22 +1,16 @@
-from sqlalchemy import text
 from app.database import engine
+from app import models
 
-def reset_database():
-    with engine.connect() as conn:
-        print("⚠️ DROPPING ALL TABLES (CASCADE)...")
 
-        conn.execute(text("""
-        DO $$ DECLARE
-            r RECORD;
-        BEGIN
-            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-                EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
-            END LOOP;
-        END $$;
-        """))
+print("⚠️ DROPPING ALL TABLES (CASCADE)...")
 
-        conn.commit()
-        print("✅ ALL tables dropped completely.")
+models.Base.metadata.drop_all(bind=engine)
 
-if __name__ == "__main__":
-    reset_database()
+print("✅ ALL tables dropped completely.")
+
+
+print("🔄 RECREATING ALL TABLES...")
+
+models.Base.metadata.create_all(bind=engine)
+
+print("✅ ALL tables recreated successfully.")
