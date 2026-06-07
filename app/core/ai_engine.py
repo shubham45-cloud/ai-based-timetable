@@ -1,15 +1,4 @@
-"""
-SIH AI TIMETABLE ENGINE  –  v2.0
-─────────────────────────────────────────────────────────────────────────────
-Key upgrades over v1
-  • Theory  (L+T)  →  single-period classroom slots
-  • Lab     (P/2)  →  consecutive 2-period lab slots  (no mid-pair theory gap)
-  • Online subjects (8th sem) are skipped entirely
-  • Combined sections (4ABC, 6AB) block all constituent sections
-    when their shared subject is scheduled
-  • Room-type enforcement: classrooms ↔ theory, labs ↔ practical
-─────────────────────────────────────────────────────────────────────────────
-"""
+
 
 from ortools.sat.python import cp_model
 from sqlalchemy.orm import Session

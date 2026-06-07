@@ -40,7 +40,8 @@ def generate_timetable(
     result = ai_engine.generate_timetable_logic(db)
 
     if result["status"] == "error":
-        raise HTTPException(status_code=409, detail=result["message"])
+        print(result)
+        raise HTTPException(status_code=409, detail=result)
 
     return result   # {"status": "success", "message": "...", "entries": N}
 
