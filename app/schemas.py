@@ -65,11 +65,32 @@ class TeacherCreate(BaseModel):
 # ------------------ TIMETABLE ------------------
 
 class TimetableEntry(BaseModel):
+    version_id: Optional[int] = None
     day_of_week: DayOfWeekEnum
     period_no: int
     subject: Subject
     teacher: Teacher
     room: Room
+
+    class Config:
+        from_attributes = True
+
+
+class TimetableVersionBase(BaseModel):
+    version_name: str
+    score: int = 0
+    is_selected: bool = False
+
+
+class TimetableVersion(TimetableVersionBase):
+    version_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class TimetableVersionWithEntries(TimetableVersion):
+    entries: List[TimetableEntry] = []
 
     class Config:
         from_attributes = True

@@ -1,3 +1,4 @@
+import random
 
 
 from ortools.sat.python import cp_model
@@ -6,19 +7,35 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.models import RoomTypeEnum, SubjectTypeEnum
 
+class TimetableCollector(cp_model.CpSolverSolutionCallback):
+    
+    def __init__(self, limit=5):
+        cp_model.CpSolverSolutionCallback.__init__(self)
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  PUBLIC ENTRY POINT
-# ══════════════════════════════════════════════════════════════════════════════
+        self.limit = limit
+        self.solutions = []
 
+    def on_solution_callback(self):
+
+        if len(self.solutions) >= self.limit:
+            self.StopSearch()
+            return
+
+        self.solutions.append(True)
+        
 def generate_timetable_logic(db: Session):
+    version = crud.create_timetable_version(
+    db,
+    version_name="Generated Timetable",
+    score=0
+    )
 
-    # ── pre-flight audit ──────────────────────────────────────────────────────
+    version_id = version.version_id
+
     issues = run_data_audit(db)
     if issues:
         return {"status": "error", "message": "Data Audit Failed", "details": issues}
 
-    # ── 1. Fetch everything ───────────────────────────────────────────────────
     teachers            = crud.get_all_teachers(db)
     subjects            = crud.get_all_subjects(db)
     rooms               = crud.get_all_rooms(db)
@@ -26,7 +43,6 @@ def generate_timetable_logic(db: Session):
     teacher_subject_links = crud.get_all_teacher_subjects(db)
     combined_links      = crud.get_combined_section_links(db)   # NEW in crud.py
 
-    # ── 2. Derived helpers ────────────────────────────────────────────────────
 
     # Room buckets
     classrooms   = [r for r in rooms if r.room_type == RoomTypeEnum.CLASSROOM]
@@ -387,9 +403,19 @@ def generate_timetable_logic(db: Session):
     #  6. SOLVE
     # ══════════════════════════════════════════════════════════════════════════
     solver = cp_model.CpSolver()
+
     solver.parameters.max_time_in_seconds = 90
-    solver.parameters.num_search_workers  = 4    # parallel threads
-    status = solver.Solve(model)
+    solver.parameters.enumerate_all_solutions = True
+    
+    solver.parameters.random_seed = random.randint(1, 100000)
+    solver.parameters.randomize_search = True
+
+    collector = TimetableCollector(limit=5)
+
+    status = solver.SearchForAllSolutions(
+        model,
+        collector
+    )
 
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return {
@@ -418,7 +444,7 @@ def generate_timetable_logic(db: Session):
                     "subject_id":  sub_id,
                     "teacher_id":  teacher_id,
                     "room_id":     r_id,
-                })
+                }, version_id)
                 saved += 1
 
     # Lab entries (2 rows per session – front-end merges them visually)
@@ -435,7 +461,7 @@ def generate_timetable_logic(db: Session):
                         "subject_id":  sub_id,
                         "teacher_id":  teacher_id,
                         "room_id":     r_id,
-                    })
+                    },version_id )
                     saved += 1
 
     db.commit()

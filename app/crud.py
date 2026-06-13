@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
-
 from app import models, schemas
 from app.core.security import get_password_hash
+from ortools.sat.python import cp_model
 
 
 # ------------------ USER FUNCTIONS ------------------
@@ -59,8 +59,11 @@ def clear_timetable(db: Session):
     db.query(models.Timetable).delete()
     db.flush()
 
-def save_timetable_entry(db: Session, entry: dict):
+def save_timetable_entry(db: Session, entry: dict, version_id: int):
+    entry["version_id"] = version_id
+
     obj = models.Timetable(**entry)
+
     db.add(obj)
     db.flush()
 
@@ -113,3 +116,52 @@ def get_full_timetable(db: Session):
         )
         .all()
     )
+    
+# ------------------ TIMETABLE VERSIONS ------------------
+
+def create_timetable_version(
+    db: Session,
+    version_name: str,
+    score: int = 0
+):
+    version = models.TimetableVersion(
+        version_name=version_name,
+        score=score
+    )
+
+    db.add(version)
+    db.commit()
+    db.refresh(version)
+
+    return version
+
+
+def get_timetable_versions(db: Session):
+    return (
+        db.query(models.TimetableVersion)
+        .order_by(models.TimetableVersion.score.desc())
+        .all()
+    )
+
+
+def select_timetable_version(
+    db: Session,
+    version_id: int
+):
+    db.query(models.TimetableVersion).update(
+        {"is_selected": False}
+    )
+
+    version = (
+        db.query(models.TimetableVersion)
+        .filter(
+            models.TimetableVersion.version_id == version_id
+        )
+        .first()
+    )
+
+    if version:
+        version.is_selected = True
+        db.commit()
+
+    return version

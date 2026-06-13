@@ -88,3 +88,24 @@ def get_timetable_for_teacher(
 
     # Return empty list (not 404) so Flutter shows "no classes" cleanly
     return teacher_entries
+
+def get_selected_timetable(db):
+    version = (
+        db.query(models.TimetableVersion)
+        .filter(
+            models.TimetableVersion.is_selected == True
+        )
+        .first()
+    )
+
+    if not version:
+        return []
+
+    return (
+        db.query(models.Timetable)
+        .filter(
+            models.Timetable.version_id ==
+            version.version_id
+        )
+        .all()
+    )

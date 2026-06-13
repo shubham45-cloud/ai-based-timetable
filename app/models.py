@@ -177,16 +177,20 @@ class CombinedSection(Base):
 # ─────────────────────────────────────────────
 # TIMETABLE
 # ─────────────────────────────────────────────
-
+class TimetableVersion(Base):
+    __tablename__ = "timetable_versions"
+    version_id = Column(Integer, primary_key=True, index=True)
+    version_name = Column(String, nullable=False)
+    score = Column(Integer, default=0)
+    is_selected = Column(Boolean, default=False)
+    
 class Timetable(Base):
-    """
-    Each row = one period slot for one subject.
-    For a LAB session two consecutive rows share the same
-    subject_id / teacher_id / room_id on the same day (period P and P+1).
-    The front-end can merge them into a single 2-hour block.
-    """
-    __tablename__ = "timetable"
+    __tablename__ = "timetable"  
     timetable_id = Column(Integer, primary_key=True, index=True)
+    version_id = Column(
+        Integer,
+        ForeignKey("timetable_versions.version_id")
+    )
     day_of_week  = Column(SQLAlchemyEnum(DayOfWeekEnum))
     period_no    = Column(Integer)
 

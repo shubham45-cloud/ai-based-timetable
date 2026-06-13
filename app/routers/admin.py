@@ -33,10 +33,7 @@ def generate_timetable(
     db: Session = Depends(get_db),
     current_admin: schemas.User = Depends(security.get_current_admin_user),
 ):
-    """
-    Runs the CP-SAT AI engine and writes a fresh timetable to the database.
-    Admin only.
-    """
+   
     result = ai_engine.generate_timetable_logic(db)
 
     if result["status"] == "error":
@@ -69,3 +66,16 @@ def reset_database(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/timetable/select/{version_id}")
+def select_timetable(
+    version_id: int,
+    db: Session = Depends(get_db),
+    current_admin: schemas.User = Depends(
+        security.get_current_admin_user
+    ),
+):
+    return crud.select_timetable_version(
+        db,
+        version_id
+    )
