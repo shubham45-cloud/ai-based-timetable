@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrastructure Resource Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --surface-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --brand-color: #4f46e5;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-subtle: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-primary); color: var(--text-main); padding: 40px 24px; min-height: 100vh; }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        .header-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .header-title h1 { font-size: 32px; font-weight: 700; tracking: -0.75px; }
+        .header-title p { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+        .action-buttons-group { display: flex; gap: 12px; }
+        
+        .back-dashboard-btn { background: var(--surface-card); color: #475569; border: 1px solid var(--border-subtle); padding: 12px 24px; border-radius: 14px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.25s top; }
+        .back-dashboard-btn:hover { background: #f1f5f9; transform: translateX(-4px); }
+        .add-resource-master-btn { background: var(--brand-color); color: #ffffff; border: none; padding: 12px 24px; border-radius: 14px; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
+        .add-resource-master-btn:hover { background: #4338ca; transform: translateY(-2px); }
+
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .metric-card { background: var(--surface-card); padding: 24px; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02); }
+        .metric-card h3 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.75px; margin-bottom: 8px; font-weight: 600; }
+        .metric-card .value { font-size: 34px; font-weight: 700; }
+
+        .search-wrapper { margin-bottom: 15px; }
+        .search-input-field { width: 100%; padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border-subtle); background: var(--surface-card); font-size: 15px; outline: none; }
+        
+        /* New Quick Filter Buttons Layout */
+        .smart-filter-row { display: flex; gap: 10px; margin-bottom: 35px; flex-wrap: wrap; }
+        .filter-pill-btn { background: #ffffff; border: 1px solid var(--border-subtle); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .filter-pill-btn:hover { border-color: var(--brand-color); color: var(--brand-color); }
+        .filter-pill-btn.active { background: var(--brand-color); color: #ffffff; border-color: var(--brand-color); }
+
+        .workspace-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
+        
+        .room-container-card { background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 26px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; }
+        .room-container-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); border-color: #cbd5e1; }
+        
+        .card-top-flex-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .room-tag-name { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Trash Icon */
+        .remove-room-action-btn { background: #fff5f5; border: 1px solid #ffe3e3; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; }
+        .trash-lid { width: 14px; height: 2px; background: var(--accent-red); border-radius: 1px; position: relative; transition: transform 0.2s; transform-origin: left bottom; }
+        .trash-lid::before { content: ''; position: absolute; top: -2px; left: 4px; width: 6px; height: 2px; background: var(--accent-red); border-radius: 1px 1px 0 0; }
+        .trash-container { width: 12px; height: 12px; border: 2px solid var(--accent-red); border-top: none; border-radius: 0 0 2px 2px; position: relative; }
+        .trash-container::after, .trash-container::before { content: ''; position: absolute; top: 2px; width: 2px; height: 6px; background: var(--accent-red); }
+        .trash-container::before { left: 2px; } .trash-container::after { right: 2px; }
+        .remove-room-action-btn:hover { background: var(--accent-red); border-color: var(--accent-red); }
+        .remove-room-action-btn:hover .trash-lid { background: #ffffff; transform: rotate(-30deg) translateY(-2px); }
+        .remove-room-action-btn:hover .trash-lid::before, .remove-room-action-btn:hover .trash-container, .remove-room-action-btn:hover .trash-container::before, .remove-room-action-btn:hover .trash-container::after { background: #ffffff; border-color: #ffffff; }
+
+        .pills-group { display: flex; gap: 8px; margin-top: 4px; margin-bottom: 16px; }
+        .tag-pill { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .tag-pill.classroom { background: #eff6ff; color: #1d4ed8; }
+        .tag-pill.lab { background: #fdf2f8; color: #be185d; }
+        .tag-pill.available { background: #e6fcf5; color: #0ca678; }
+        .tag-pill.available:hover { background: #c3fae8; }
+        .tag-pill.occupied { background: #fff5f5; color: #e03131; }
+        .tag-pill.occupied:hover { background: #ffe3e3; }
+
+        .matrix-data-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9; margin-bottom: 12px; }
+        .matrix-data-row span { color: var(--text-muted); }
+        .matrix-data-row strong { color: var(--text-main); font-weight: 600; }
+
+        /* Timetable Integration Button */
+        .room-timeline-btn { width: 100%; background: #f8fafc; border: 1px solid var(--border-subtle); color: #475569; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; text-align: center; }
+        .room-timeline-btn:hover { background: var(--brand-color); color: #ffffff; border-color: var(--brand-color); }
+
+        /* Modals Layer Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-container { background: #ffffff; width: 90%; max-width: 440px; border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-container.wide-matrix { max-width: 750px; }
+        .modal-overlay.active .modal-container { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+        .close-modal-btn { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; color: var(--text-muted); }
+
+        .form-group-block { margin-bottom: 18px; }
+        .form-group-block label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+        .form-group-block input, .form-group-block select { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-subtle); outline: none; }
+        .submit-form-action-btn { width: 100%; background: var(--brand-color); color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+
+        .timeline-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; font-size: 13px; }
+        .timeline-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; color: var(--text-muted); }
+        .timeline-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .slot-pill { padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; }
+        .slot-pill.free { background: #e6fcf5; color: #0ca678; }
+        .slot-pill.allocated { background: #fff1f2; color: #e11d48; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header-wrapper">
+        <div class="header-title">
+            <h1>Infrastructure Matrix</h1>
+            <p>Track allocation spaces, capacities, and structural variant layouts.</p>
+        </div>
+        <div class="action-buttons-group">
+            <button class="back-dashboard-btn" onclick="window.location.href='admin_dashboard.html'">← Dashboard</button>
+            <button class="add-resource-master-btn" id="openAddRoomFormBtn">＋ Add Allocation Room</button>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <div class="metric-card">
+            <h3>Tracked Resources</h3>
+            <div class="value" id="countRoomsMetric">0</div>
+        </div>
+        <div class="metric-card">
+            <h3>Classroom Hubs</h3>
+            <div class="value" id="countClassroomsMetric">0</div>
+        </div>
+        <div class="metric-card">
+            <h3>Specialized Labs</h3>
+            <div class="value" id="countLabsMetric">0</div>
+        </div>
+    </div>
+
+    <div class="search-wrapper">
+        <input type="text" id="roomLiveSearch" class="search-input-field" placeholder="Search resources via tag reference names...">
+    </div>
+
+    <!-- Quick Dynamic Filters Row -->
+    <div class="smart-filter-row">
+        <button class="filter-pill-btn active" onclick="applySmartFilter('all', this)">All Assets</button>
+        <button class="filter-pill-btn" onclick="applySmartFilter('CLASSROOM', this)">Classrooms</button>
+        <button class="filter-pill-btn" onclick="applySmartFilter('LAB', this)">Labs Only</button>
+        <button class="filter-pill-btn" onclick="applySmartFilter('Available', this)">Available</button>
+        <button class="filter-pill-btn" onclick="applySmartFilter('Occupied', this)">Occupied / Maintenance</button>
+    </div>
+
+    <div class="workspace-cards-grid" id="roomsGridSystem"></div>
+
+</div>
+
+<!-- MODAL 1: ADD NEW ALLOCATION ROOM -->
+<div class="modal-overlay" id="addRoomFormOverlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div>
+                <h2 style="font-size:20px; font-weight:700;">Add Allocation Asset</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top:2px;">Insert infrastructure allocation item values.</p>
+            </div>
+            <button class="close-modal-btn" id="closeFormAction">✕</button>
+        </div>
+        <form id="newRoomRegistrationForm">
+            <div class="form-group-block">
+                <label for="inputRoomName">Room Tag Identifier</label>
+                <input type="text" id="inputRoomName" placeholder="e.g., CR-106, LAB-104" required>
+            </div>
+            <div class="form-group-block">
+                <label for="selectRoomType">Resource Classification</label>
+                <select id="selectRoomType" required>
+                    <option value="CLASSROOM">Classroom Facility</option>
+                    <option value="LAB">Specialized Lab Matrix</option>
+                </select>
+            </div>
+            <div class="form-group-block">
+                <label for="inputCapacity">Max Seating Capacity Limit</label>
+                <input type="number" id="inputCapacity" min="15" max="120" value="60" required>
+            </div>
+            <div class="form-group-block">
+                <label for="selectStatus">Initial Availability Status</label>
+                <select id="selectStatus" required>
+                    <option value="Available">Available for Routing</option>
+                    <option value="Occupied">Occupied / Locked</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-form-action-btn">Deploy Asset Node</button>
+        </form>
+    </div>
+</div>
+
+<!-- NEW MODAL 2: ROOM TIMELINE ALLOCATION SCHEDULE MATRIX -->
+<div class="modal-overlay" id="roomTimelineOverlay">
+    <div class="modal-container wide-matrix">
+        <div class="modal-header">
+            <div>
+                <h2 id="timelineTargetTitle" style="font-size:20px; font-weight:700;">Room Space Timeline</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top:2px;">Allocated timetable slots mapping index.</p>
+            </div>
+            <button class="close-modal-btn" onclick="closeTimelineModal()">✕</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="timeline-table">
+                <thead>
+                    <tr>
+                        <th>Day Mapping</th>
+                        <th>09:00 AM - 11:00 AM</th>
+                        <th>11:30 AM - 01:30 PM</th>
+                        <th>02:30 PM - 04:30 PM</th>
+                    </tr>
+                </thead>
+                <tbody id="timelineTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="rooms.js"></script>
+</body>
+</html>

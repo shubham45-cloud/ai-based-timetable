@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NIET — AI Timetable Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ink:      #0d1117;
+  --ink2:     #1c2333;
+  --surface:  #f6f8fa;
+  --card:     #ffffff;
+  --border:   #d0d7de;
+  --border2:  #e8ecf0;
+  --blue:     #0969da;
+  --blue-bg:  #ddf4ff;
+  --green:    #1a7f37;
+  --green-bg: #dafbe1;
+  --orange:   #bc4c00;
+  --orange-bg:#fff8c5;
+  --red:      #cf222e;
+  --red-bg:   #ffebe9;
+  --purple:   #8250df;
+  --purple-bg:#fbefff;
+  --muted:    #57606a;
+  --muted2:   #8c959f;
+  --lab-bg:   #fff0f6;
+  --lab-color:#bf3989;
+  --shadow-sm: 0 1px 3px rgba(13,17,23,.06), 0 1px 2px rgba(13,17,23,.04);
+  --shadow:    0 4px 12px rgba(13,17,23,.08), 0 1px 3px rgba(13,17,23,.05);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  font-size: 14px;
+}
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  padding: 4px 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 8px;
+}
+
+.sidebar-logo .logo-badge {
+  display: inline-block;
+  background: var(--blue);
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+
+.sidebar-logo h2 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sidebar-logo p {
+  color: rgba(255,255,255,.4);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.nav-section {
+  padding: 0 12px;
+  margin-bottom: 4px;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  padding: 8px 8px 4px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.65);
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  transition: background .15s, color .15s;
+}
+
+.nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+.nav-btn.active { background: rgba(9,105,218,.25); color: #58a6ff; }
+
+.nav-btn .nav-icon {
+  width: 18px;
+  height: 18px;
+  opacity: .7;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.3);
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+}
+
+/* ─── MAIN ───────────────────────────────────────────────── */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TOPBAR ─────────────────────────────────────────────── */
+.topbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-title {
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-sub {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 1px;
+}
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity .15s, transform .1s;
+}
+
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #0860c4; }
+.btn-danger  { background: var(--red-bg); color: var(--red); border: 1px solid #ffc1c0; }
+.btn-danger:hover:not(:disabled)  { background: #ffd7d5; }
+.btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--border); }
+.btn-outline:hover:not(:disabled) { background: var(--surface); }
+
+/* status pill */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+}
+
+.status-idle    { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+.status-loading { background: var(--orange-bg); color: var(--orange); border: 1px solid #f7c948; }
+.status-success { background: var(--green-bg); color: var(--green); border: 1px solid #abdfa8; }
+.status-error   { background: var(--red-bg);   color: var(--red);   border: 1px solid #ffc1c0; }
+
+/* ─── CONTENT ────────────────────────────────────────────── */
+.content { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+/* ─── STATS ──────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.stat-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-sub { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+/* ─── SECTION TABS CARD ──────────────────────────────────── */
+.timetable-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.timetable-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.timetable-card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Section tab bar */
+.tabs-bar {
+  display: flex;
+  gap: 4px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border2);
+  flex-wrap: wrap;
+  background: var(--surface);
+}
+
+.tab-btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: .15s;
+}
+
+.tab-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+.tab-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.tab-btn.combined {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  border-style: dashed;
+  opacity: .75;
+}
+
+.tab-btn.combined.active { opacity: 1; }
+
+/* ─── TIMETABLE TABLE ────────────────────────────────────── */
+.table-wrapper { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+/* column sizing */
+table colgroup col:first-child { width: 90px; }
+
+thead th {
+  background: var(--ink2);
+  color: rgba(255,255,255,.9);
+  padding: 11px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,.06);
+  font-family: 'Space Mono', monospace;
+}
+
+thead th:first-child {
+  background: var(--ink);
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+
+.time-row td { background: #f0f3f8; }
+
+.time-cell {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 7px 14px;
+  text-align: center;
+  letter-spacing: .04em;
+  border-right: 1px solid var(--border2);
+}
+
+.lunch-row td {
+  background: #fffbea;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #856404;
+  padding: 7px;
+  letter-spacing: .05em;
+  border-top: 1px solid #f0d87c;
+  border-bottom: 1px solid #f0d87c;
+}
+
+/* data cells */
+td {
+  border: 1px solid var(--border2);
+  padding: 0;
+  vertical-align: top;
+}
+
+.slot-label {
+  background: var(--surface);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 8px;
+  border-right: 2px solid var(--border);
+  min-width: 72px;
+}
+
+.cell-inner {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+}
+
+/* theory cell */
+.cell-theory { background: #fff; }
+.cell-theory:hover { background: var(--blue-bg); }
+
+/* lab cell */
+.cell-lab { background: var(--lab-bg); }
+.cell-lab:hover { background: #fce4f4; }
+.cell-lab .cell-inner { border-left: 3px solid var(--lab-color); }
+
+/* combined cell */
+.cell-combined { background: var(--purple-bg); }
+.cell-combined:hover { background: #f2e4ff; }
+.cell-combined .cell-inner { border-left: 3px solid var(--purple); }
+
+.cell-empty {
+  background: #fff;
+  text-align: center;
+  vertical-align: middle;
+  color: #d0d7de;
+  font-size: 18px;
+  padding: 0;
+}
+
+.subj-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.cell-lab .subj-name    { color: var(--lab-color); }
+.cell-combined .subj-name { color: var(--purple); }
+
+.teacher-name {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  width: fit-content;
+}
+
+.room-badge-classroom { background: var(--green-bg); color: var(--green); }
+.room-badge-lab       { background: var(--lab-bg);   color: var(--lab-color); }
+.room-badge-combined  { background: var(--purple-bg); color: var(--purple); }
+
+.type-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  font-family: 'Space Mono', monospace;
+}
+
+/* empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted2);
+}
+
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: transform .3s, opacity .3s;
+  z-index: 9999;
+  max-width: 360px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ─── LOADER ─────────────────────────────────────────────── */
+.loader-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue), #58a6ff, var(--blue));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  display: none;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.loader-bar.active { display: block; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .sidebar { display: none; }
+  .topbar { padding: 14px 16px; flex-wrap: wrap; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ───────────── SIDEBAR ───────────── -->
+<!-- ───────────── SIDEBAR ───────────── -->
+<aside class="sidebar">
+
+  <div class="sidebar-logo">
+    <div class="logo-badge">NIET · AI</div>
+    <h2>Timetable<br>Scheduler</h2>
+    <p>Even Semester 2025-26</p>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <button class="nav-btn active">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-btn" id="navGenerate">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Generate
+    </button>
+    <button class="nav-btn" id="facultyBtn">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Faculty
+    </button>
+    <button class="nav-btn" id="roomsBtn">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Rooms
+    </button>
+    <button class="nav-btn" id="subjectsBtn">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Subjects
+    </button>
+  </div>
+
+  <div class="nav-section" style="margin-top: 8px;">
+    <div class="nav-label">Sections</div>
+    <!-- 🟢 JS will inject the 4A, 4B, 4C, 6A, 6B buttons here automatically -->
+    <div id="sidebarSections"></div>
+  </div>
+
+  <div class="sidebar-footer">
+    CSE Dept · BTECH 2025-26
+  </div>
+
+</aside>
+
+<!-- ───────────── MAIN ───────────── -->
+<div class="main">
+
+  <!-- loader bar -->
+  <div class="loader-bar" id="loaderBar"></div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        AI Timetable Dashboard
+      </div>
+      <div class="topbar-sub">Dept. of CS — NIET Greater Noida</div>
+    </div>
+
+    <div class="topbar-actions">
+      <span class="status-pill status-idle" id="statusPill">Ready</span>
+      <button class="btn btn-outline" id="exportBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="btn btn-danger" id="deleteBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Delete
+      </button>
+      <button class="btn btn-primary" id="generateBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Generate Timetable
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Faculty</div>
+        <div class="stat-value" id="statFaculty">17</div>
+        <div class="stat-sub">CSE Department</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rooms</div>
+        <div class="stat-value" id="statRooms">0</div>
+        
+         <div class="stat-sub">Classrooms + Labs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Labs</div>
+        <div class="stat-value">3</div>
+        <div class="stat-sub">LAB-101 to LAB-103</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sections</div>
+        <div class="stat-value">5</div>
+        <div class="stat-sub">4A · 4B · 4C · 6A · 6B</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Subjects</div>
+        <div class="stat-value" id="statSubjects">—</div>
+        <div class="stat-sub">Theory + Labs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">8th Sem</div>
+        <div class="stat-value" style="color:var(--green)">🌐</div>
+        <div class="stat-sub">100% Online Mode</div>
+      </div>
+    </div>
+
+    <!-- TIMETABLE CARD -->
+    <div class="timetable-card">
+
+      <div class="timetable-card-header">
+        <div class="timetable-card-title">Generated Timetable</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+            <span style="display:inline-block;width:10px;height:10px;background:var(--lab-bg);border:1.5px solid var(--lab-color);border-radius:2px"></span> Lab (2h)
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+            <span style="display:inline-block;width:10px;height:10px;background:var(--purple-bg);border:1.5px solid var(--purple);border-radius:2px"></span> Combined
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+            <span style="display:inline-block;width:10px;height:10px;background:#fff;border:1.5px solid var(--border);border-radius:2px"></span> Theory
+          </div>
+        </div>
+      </div>
+
+      <!-- Section tabs -->
+      <div class="tabs-bar" id="tabsBar">
+        <button class="tab-btn active" data-dept="1">SEM IV-A</button>
+        <button class="tab-btn" data-dept="2">SEM IV-B</button>
+        <button class="tab-btn" data-dept="3">SEM IV-C</button>
+        <button class="tab-btn" data-dept="4">SEM VI-A</button>
+        <button class="tab-btn" data-dept="5">SEM VI-B</button>
+        
+      </div>
+
+      <!-- Table area -->
+      <div class="table-wrapper" id="tableWrapper">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <p>No timetable yet — click <strong>Generate Timetable</strong> to create one.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="admin_dashboard.js"></script>
+<!-- ==================== HIGH-TECH AI GENERATION PROCESS MODAL ==================== -->
+
+
+</body>
+</html>

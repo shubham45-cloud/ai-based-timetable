@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Management | Matrix Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --surface-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --brand-color: #4f46e5;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-subtle: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-main);
+            padding: 40px 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Top Header Area */
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header-title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.75px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .action-buttons-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .back-dashboard-btn {
+            background: var(--surface-card);
+            color: #475569;
+            border: 1px solid var(--border-subtle);
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .back-dashboard-btn:hover {
+            background: #f1f5f9;
+            transform: translateX(-4px);
+        }
+
+        .add-faculty-master-btn {
+            background: var(--brand-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .add-faculty-master-btn:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        /* Analytics Dashboard Bar */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: var(--surface-card);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+        }
+
+        .metric-card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metric-card .value {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Filter Controls */
+        .search-wrapper {
+            margin-bottom: 35px;
+        }
+
+        .search-input-field {
+            width: 100%;
+            padding: 18px 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            background: var(--surface-card);
+            font-size: 15px;
+            outline: none;
+        }
+
+        /* Cards Grid Layout */
+        .workspace-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 28px;
+        }
+
+        /* Profile Container Card */
+        .profile-container-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .profile-container-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+
+        .card-top-flex-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .avatar-frame-box {
+            width: 52px;
+            height: 52px;
+            background: #f5f3ff;
+            color: var(--brand-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .live-status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            border: 2px solid #ffffff;
+        }
+
+        /* ─── UPGRADED: PREMIUM TRASH BIN BUTTON ANIMATION SYSTEM ─── */
+        .remove-faculty-action-btn {
+            background: #fff5f5;
+            border: 1px solid #ffe3e3;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 2px;
+        }
+
+        /* Trash Lid (Cap) */
+        .trash-lid {
+            width: 14px;
+            height: 2px;
+            background: var(--accent-red);
+            border-radius: 1px;
+            position: relative;
+            transition: transform 0.2s ease;
+            transform-origin: left bottom;
+        }
+        .trash-lid::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 4px;
+            width: 6px;
+            height: 2px;
+            background: var(--accent-red);
+            border-radius: 1px 1px 0 0;
+        }
+
+        /* Trash Body (Container) */
+        .trash-container {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--accent-red);
+            border-top: none;
+            border-radius: 0 0 2px 2px;
+            position: relative;
+        }
+        /* Vertical lines inside trash container */
+        .trash-container::after, .trash-container::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            width: 2px;
+            height: 6px;
+            background: var(--accent-red);
+            border-radius: 1px;
+        }
+        .trash-container::before { left: 2px; }
+        .trash-container::after { right: 2px; }
+
+        /* HOVER EFFECTS: Dynamic opening lid action */
+        .remove-faculty-action-btn:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .remove-faculty-action-btn:hover .trash-lid {
+            background: #ffffff;
+            transform: rotate(-30deg) translateY(-2px);
+        }
+
+        .remove-faculty-action-btn:hover .trash-lid::before,
+        .remove-faculty-action-btn:hover .trash-container,
+        .remove-faculty-action-btn:hover .trash-container::before,
+        .remove-faculty-action-btn:hover .trash-container::after {
+            background: #ffffff;
+            border-color: #ffffff;
+        }
+        .remove-faculty-action-btn:hover .trash-container {
+            border-top: none;
+        }
+
+        .top-meta-block h3 {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .system-id-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .pills-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .tag-pill {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag-pill.alt {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .matrix-data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            padding: 14px 0;
+            border-top: 1px solid #f1f5f9;
+            margin-top: 16px;
+        }
+
+        .view-schedule-btn {
+            width: 100%;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid var(--border-subtle);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .view-schedule-btn:hover {
+            background: var(--brand-color);
+            color: #ffffff;
+        }
+
+        /* Global Modals Configurations Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: #ffffff;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-container.form-narrow {
+            max-width: 480px;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .close-modal-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* Input Form Elements Architecture */
+        .form-group-block {
+            margin-bottom: 18px;
+        }
+
+        .form-group-block label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .form-group-block input, .form-group-block select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            background: #ffffff;
+        }
+
+        .submit-form-action-btn {
+            width: 100%;
+            background: var(--brand-color);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .submit-form-action-btn:hover {
+            background: #4338ca;
+        }
+
+        /* Timetable Structure Components Layout */
+        .timetable-matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .timetable-matrix-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: left;
+            padding: 14px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .timetable-matrix-table td {
+            padding: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .matrix-slot-badge {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .matrix-slot-badge.busy {
+            background: #fff1f2;
+            color: #e11d48;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header-wrapper">
+        <div class="header-title">
+            <h1>Faculty Registry</h1>
+            <p>Configure workload allocation matrices and validation dependencies.</p>
+        </div>
+        <div class="action-buttons-group">
+            <button class="back-dashboard-btn" onclick="window.location.href='admin_dashboard.html'">← Dashboard</button>
+            <button class="add-faculty-master-btn" id="openAddFacultyFormBtn">＋ Add Faculty</button>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <div class="metric-card">
+            <h3>Registered Faculty</h3>
+            <div class="value" id="countFacultyMetric">0</div>
+        </div>
+        <div class="metric-card">
+            <h3>Active Hubs</h3>
+            <div class="value">CSE / IT</div>
+        </div>
+        <div class="metric-card">
+            <h3>Total Aggregated Load</h3>
+            <div class="value" id="totalCombinedLoadDisplay">0 hrs</div>
+        </div>
+    </div>
+
+    <div class="search-wrapper">
+        <input type="text" id="liveSearchEngine" class="search-input-field" placeholder="Search by instructor name...">
+    </div>
+
+    <div class="workspace-cards-grid" id="facultyGridSystem"></div>
+
+</div>
+
+<div class="modal-overlay" id="scheduleModalOverlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div>
+                <h2 id="modalFacultyName">Faculty Schedule Matrix</h2>
+                <p id="modalFacultyId" style="color: var(--text-muted); font-size: 13px; margin-top:4px;"></p>
+            </div>
+            <button class="close-modal-btn" id="closeModalAction">✕</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="timetable-matrix-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>09:00 AM - 11:00 AM</th>
+                        <th>11:30 AM - 01:30 PM</th>
+                        <th>02:30 PM - 04:30 PM</th>
+                    </tr>
+                </thead>
+                <tbody id="modalTimetableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addFacultyFormOverlay">
+    <div class="modal-container form-narrow">
+        <div class="modal-header">
+            <div>
+                <h2>Add Faculty Member</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top:2px;">Insert profile node metadata values.</p>
+            </div>
+            <button class="close-modal-btn" id="closeFormAction">✕</button>
+        </div>
+        <form id="newInstructorRegistrationForm">
+            <div class="form-group-block">
+                <label for="inputFacultyName">Full Name</label>
+                <input type="text" id="inputFacultyName" placeholder="e.g., Dr. Rajesh Kumar" required>
+            </div>
+            <div class="form-group-block">
+                <label for="selectDepartment">Department Core Hub</label>
+                <select id="selectDepartment" required>
+                    <option value="CSE">CSE (Computer Science)</option>
+                    <option value="IT">IT (Information Technology)</option>
+                </select>
+            </div>
+            <div class="form-group-block">
+                <label for="selectTier">Academic Tier Designation</label>
+                <select id="selectTier" required>
+                    <option value="Professor">Professor</option>
+                    <option value="Associate Prof.">Associate Prof.</option>
+                    <option value="Assistant Prof.">Assistant Prof.</option>
+                    <option value="Lecturer">Lecturer</option>
+                </select>
+            </div>
+            <div class="form-group-block">
+                <label for="inputWorkload">Weekly Hours Constraint</label>
+                <input type="number" id="inputWorkload" min="2" max="24" value="14" required>
+            </div>
+            <button type="submit" class="submit-form-action-btn">Register New Record Node</button>
+        </form>
+    </div>
+</div>
+
+<script src="faculty.js"></script>
+</body>
+</html>
