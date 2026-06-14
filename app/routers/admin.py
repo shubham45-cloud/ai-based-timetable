@@ -5,6 +5,7 @@ from sqlalchemy import text
 from .. import crud, schemas
 from ..database import get_db
 from ..core import security, ai_engine
+from app.models import Teacher, Subject, Room
 
 router = APIRouter(
     prefix="/admin",
@@ -79,3 +80,16 @@ def select_timetable(
         db,
         version_id
     )
+
+
+@router.get("/faculty")
+def get_faculty(db: Session = Depends(get_db)):
+    return db.query(Teacher).all()
+
+@router.get("/subjects")
+def get_subjects(db: Session = Depends(get_db)):
+    return db.query(Subject).all()
+
+@router.get("/rooms")
+def get_rooms(db: Session = Depends(get_db)):
+    return db.query(Room).all()
